@@ -673,8 +673,48 @@ function __setprompt
 	# Number of files
 	PS1+="\[${GREEN}\]\$(/bin/ls -A -1 | /usr/bin/wc -l)\[${DARKGRAY}\])"
 
-	# Git branch
-	PS1+="\n$(__git_ps1 '[%s]')"
+	# Git features
+	# Detect whether the current directory is a git repository.
+	function is_git_repository {
+	  git branch > /dev/null 2>&1
+	}
+
+		# Determine the branch/state information for this git repository.
+	if is_git_repository ; then
+
+	  # Capture the output of the "git status" command.
+	  git_status="$(git status 2> /dev/null)"
+
+	  # Set color based on clean/staged/dirty.
+	  if [[ ${git_status} =~ "working directory clean" ]]; then
+	    state="${GREEN}"
+	  elif [[ ${git_status} =~ "Changes to be committed" ]]; then
+	    state="${YELLOW}"
+	  else
+	    state="${LIGHTRED}"
+	  fi
+
+	  # Set arrow icon based on status against remote.
+	  remote_pattern="# Your branch is (.*) of"
+	  if [[ ${git_status} =~ ${remote_pattern} ]]; then
+	    if [[ ${BASH_REMATCH[1]} == "ahead" ]]; then
+	      remote="↑"
+	    else
+	      remote="↓"
+	    fi
+	  else
+	    remote=""
+	  fi
+	  diverge_pattern="# Your branch and (.*) have diverged"
+	  if [[ ${git_status} =~ ${diverge_pattern} ]]; then
+	    remote="↕"
+	  fi
+
+	  # Set the final branch string.
+		PS1+="\n${state}$(__git_ps1)${remote}\[${NOCOLOR}\]"
+	fi
+
+	# PS1+="\n${NOCOLOR}$(__git_ps1 '[%s]')"
 
 	# Skip to the next line
 	PS1+="\n"
