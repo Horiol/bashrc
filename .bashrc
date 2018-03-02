@@ -673,6 +673,9 @@ function __setprompt
 	# Number of files
 	PS1+="\[${GREEN}\]\$(/bin/ls -A -1 | /usr/bin/wc -l)\[${DARKGRAY}\])"
 
+	# Git branch
+	PS1+="\n$(__git_ps1 '[%s]')"
+
 	# Skip to the next line
 	PS1+="\n"
 
